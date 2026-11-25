@@ -12,14 +12,15 @@ namespace ChatIA.Application
     /// </summary>
     public static class DependencyInjectionExtension
     {
-        public static void AddApplication(this IServiceCollection services)
+        /// <param name="registerChat">
+        /// true na Api. false no McpServer (não precisa de IChatAiService).
+        /// </param>
+        public static void AddApplication(this IServiceCollection services, bool registerChat = true)
         {
-            AddUseCases(services);
-        }
-
-        private static void AddUseCases(IServiceCollection services)
-        {
-            services.AddScoped<ISendChatMessageUseCase, SendChatMessageUseCase>();
+            if (registerChat)
+            {
+                services.AddScoped<ISendChatMessageUseCase, SendChatMessageUseCase>();
+            }
 
             services.AddScoped<IGetPedidosCountUseCase, GetPedidosCountUseCase>();
             services.AddScoped<IGetLatestPedidosUseCase, GetLatestPedidosUseCase>();

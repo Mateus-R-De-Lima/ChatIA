@@ -14,9 +14,9 @@ builder.Logging.AddConsole(options =>
     options.LogToStandardErrorThreshold = LogLevel.Trace;
 });
 
-// McpServer não precisa de LLM — só Mongo + use cases de leitura.
+// McpServer não precisa de LLM — só Mongo + use cases de leitura de pedidos.
 builder.Services.AddInfrastructure(builder.Configuration, registerAi: false);
-builder.Services.AddApplication();
+builder.Services.AddApplication(registerChat: false);
 
 builder.Services
     .AddMcpServer()
