@@ -1,26 +1,29 @@
 using ChatIA.Communication.Requests;
 using ChatIA.Communication.Responses;
+using ChatIA.Domain.Services.Ai;
 using ChatIA.Exception.ExceptionsBase;
 
 namespace ChatIA.Application.UseCases.Chat.SendMessage
 {
     /// <summary>
     /// Caso de uso do chat.
-    /// Etapa 3: resposta simulada (sem LLM).
-    /// Etapa 4: este mesmo contrato passará a chamar o serviço de IA.
+    /// Valida a entrada e delega a geração da resposta ao IChatAiService (Domain).
     /// </summary>
-    public class SendChatMessageUseCase : ISendChatMessageUseCase
+    public class SendChatMessageUseCase(IChatAiService chatAiService) : ISendChatMessageUseCase
     {
         public async Task<ResponseChatMessageJson> Execute(RequestChatMessageJson request)
         {
             Validate(request);
 
-            // Simula latência de rede/modelo para o indicador de carregamento no Blazor.
-            await Task.Delay(600);
+            var history = MapHistory(request.History);
+
+            var reply = await chatAiService.GetReplyAsync(
+                request.Message.Trim(),
+                history);
 
             return new ResponseChatMessageJson
             {
-                Reply = BuildSimulatedReply(request.Message)
+                Reply = reply
             };
         }
 
@@ -32,15 +35,24 @@ namespace ChatIA.Application.UseCases.Chat.SendMessage
             }
         }
 
-        private static string BuildSimulatedReply(string message)
+        private static List<ChatTurn>? MapHistory(List<RequestChatHistoryItemJson>? history)
         {
-            return $"""
-                [Resposta simulada — Etapa 3]
-                Recebi sua pergunta: "{message.Trim()}"
+            if (history is null || history.Count == 0)
+            {
+                return null;
+            }
 
-                Na Etapa 4 esta resposta virá do modelo de IA.
-                Na Etapa 7, se a pergunta exigir dados, a IA poderá usar ferramentas MCP.
-                """;
+            // Limita o contexto para não estourar tokens / custo nas primeiras etapas.
+            const int maxTurns = 12;
+
+            return history
+                .Where(item =>
+                    !string.IsNullOrWhiteSpace(item.Content) &&
+                    (item.Role.Equals("user", StringComparison.OrdinalIgnoreCase) ||
+                     item.Role.Equals("assistant", StringComparison.OrdinalIgnoreCase)))
+                .TakeLast(maxTurns)
+                .Select(item => new ChatTurn(item.Role.Trim().ToLowerInvariant(), item.Content.Trim()))
+                .ToList();
         }
     }
 }
