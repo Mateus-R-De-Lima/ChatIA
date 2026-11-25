@@ -2,11 +2,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChatIA.Domain\ChatIA.Domain.csproj" />
+    <ProjectReference Include="..\ChatIA.Exception\ChatIA.Exception.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.AI" Version="11.0.1" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="11.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.15" />
   </ItemGroup>
 
   <PropertyGroup>
