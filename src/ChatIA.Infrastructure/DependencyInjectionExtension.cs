@@ -66,7 +66,9 @@ namespace ChatIA.Infrastructure
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new InvalidOperationException(
-                    "Configure ConnectionStrings:MongoDb (ex.: mongodb://localhost:27017).");
+                    "Configure ConnectionStrings:MongoDb. " +
+                    "Sem auth: mongodb://localhost:27017 | Com auth: mongodb://usuario:senha@localhost:27017. " +
+                    "Prefira User Secrets: dotnet user-secrets set \"ConnectionStrings:MongoDb\" \"...\" --project src/ChatIA.Api");
             }
 
             services.AddSingleton<IMongoClient>(_ => new MongoClient(connectionString));
