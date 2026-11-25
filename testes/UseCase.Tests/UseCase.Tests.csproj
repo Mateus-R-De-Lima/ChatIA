@@ -22,6 +22,8 @@
     <ProjectReference Include="..\..\src\ChatIA.Application\ChatIA.Application.csproj" />
     <ProjectReference Include="..\..\src\ChatIA.Domain\ChatIA.Domain.csproj" />
     <ProjectReference Include="..\CommonTestUtilities\CommonTestUtilities.csproj" />
+    <ProjectReference Include="..\..\src\ChatIA.Exception\ChatIA.Exception.csproj" />
+    <ProjectReference Include="..\..\src\ChatIA.Communication\ChatIA.Communication.csproj" />
   </ItemGroup>
 
 </Project>

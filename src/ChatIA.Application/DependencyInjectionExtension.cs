@@ -1,3 +1,4 @@
+using ChatIA.Application.UseCases.Chat.SendMessage;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ChatIA.Application
@@ -15,9 +16,8 @@ namespace ChatIA.Application
 
         private static void AddUseCases(IServiceCollection services)
         {
-            // Etapa 2: ainda não há use cases.
-            // Nas próximas etapas registraremos aqui, por exemplo:
-            // services.AddScoped<ISendChatMessageUseCase, SendChatMessageUseCase>();
+            services.AddScoped<ISendChatMessageUseCase, SendChatMessageUseCase>();
         }
     }
 }
+
