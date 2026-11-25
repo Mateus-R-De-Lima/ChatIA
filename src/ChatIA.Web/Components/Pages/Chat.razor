@@ -12,7 +12,7 @@
 <section class="chat-page">
     <header class="chat-page__header">
         <h1>Chat</h1>
-        <p>Etapa 3: respostas simuladas pela Api (sem IA real ainda).</p>
+        <p>Etapa 4: respostas geradas pelo modelo de IA (com histórico da conversa).</p>
     </header>
 
     <ChatMessageList Messages="_messages" IsLoading="_isLoading" />
@@ -34,6 +34,15 @@
     {
         _error = null;
 
+        // Histórico ANTES de adicionar a mensagem atual (a Api recebe Message + History separados).
+        var history = _messages
+            .Select(message => new RequestChatHistoryItemJson
+            {
+                Role = message.Role,
+                Content = message.Content
+            })
+            .ToList();
+
         _messages.Add(new ChatUiMessage
         {
             Role = "user",
@@ -48,7 +57,11 @@
 
             var response = await client.PostAsJsonAsync(
                 "api/chat",
-                new RequestChatMessageJson { Message = text });
+                new RequestChatMessageJson
+                {
+                    Message = text,
+                    History = history
+                });
 
             if (!response.IsSuccessStatusCode)
             {
@@ -69,7 +82,7 @@
         }
         catch (Exception)
         {
-            _error = "Não foi possível falar com a Api. Verifique se a ChatIA.Api está em execução.";
+            _error = "Não foi possível falar com a Api. Verifique se a ChatIA.Api está em execução e se a ApiKey da IA está configurada.";
         }
         finally
         {
