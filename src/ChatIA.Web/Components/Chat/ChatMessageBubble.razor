@@ -1,0 +1,13 @@
+@using ChatIA.Web.Models
+
+@* Uma bolha de mensagem. Usuário à direita, IA à esquerda. *@
+<div class="chat-bubble @(Message.IsUser ? "chat-bubble--user" : "chat-bubble--assistant")">
+    <div class="chat-bubble__role">@(Message.IsUser ? "Você" : "IA")</div>
+    <div class="chat-bubble__content">@Message.Content</div>
+    <div class="chat-bubble__time">@Message.SentAt.ToString("HH:mm")</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ChatUiMessage Message { get; set; } = default!;
+}

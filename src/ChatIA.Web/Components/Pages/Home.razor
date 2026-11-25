@@ -1,40 +1,17 @@
 ﻿@page "/"
-@rendermode InteractiveServer
-@inject IHttpClientFactory HttpClientFactory
 
 <PageTitle>ChatIA</PageTitle>
 
-<h1>ChatIA</h1>
-
-<p>
-    Projeto de aprendizado: chatbot com .NET, MongoDB e MCP,
-    seguindo a arquitetura do CashFlow.
-</p>
-
-<p><strong>Status da Etapa 2:</strong> solution, camadas e DI preparados.</p>
-<p>Na Etapa 3 vamos criar a página de chat.</p>
-
-@if (!string.IsNullOrWhiteSpace(_apiStatus))
-{
-    <p>Api: @_apiStatus</p>
-}
-
-@code {
-    private string? _apiStatus;
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            var client = HttpClientFactory.CreateClient("ChatIA.Api");
-            var response = await client.GetAsync("api/health");
-            _apiStatus = response.IsSuccessStatusCode
-                ? "conectada (GET /api/health OK)"
-                : $"respondeu {(int)response.StatusCode}";
-        }
-        catch (Exception)
-        {
-            _apiStatus = "indisponível — rode a ChatIA.Api em paralelo para testar a conexão";
-        }
-    }
-}
+<section class="home">
+    <h1>ChatIA</h1>
+    <p>
+        Chatbot de aprendizado com .NET, MongoDB e MCP,
+        seguindo a arquitetura do CashFlow.
+    </p>
+    <p>
+        <a class="home__cta" href="/chat">Abrir o chat</a>
+    </p>
+    <p class="home__hint">
+        Etapa 3: a interface envia mensagens para a Api e recebe respostas simuladas.
+    </p>
+</section>

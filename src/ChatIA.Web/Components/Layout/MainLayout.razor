@@ -1,6 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+<div class="app-shell">
+    <header class="app-shell__header">
+        <a class="app-shell__brand" href="/">ChatIA</a>
+        <nav class="app-shell__nav">
+            <NavLink href="/" Match="NavLinkMatch.All">Início</NavLink>
+            <NavLink href="/chat">Chat</NavLink>
+        </nav>
+    </header>
+
+    <main class="app-shell__main">
+        @Body
+    </main>
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.

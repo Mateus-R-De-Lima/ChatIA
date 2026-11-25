@@ -1,0 +1,79 @@
+@page "/chat"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using ChatIA.Communication.Requests
+@using ChatIA.Communication.Responses
+@using ChatIA.Web.Components.Chat
+@using ChatIA.Web.Models
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Chat — ChatIA</PageTitle>
+
+<section class="chat-page">
+    <header class="chat-page__header">
+        <h1>Chat</h1>
+        <p>Etapa 3: respostas simuladas pela Api (sem IA real ainda).</p>
+    </header>
+
+    <ChatMessageList Messages="_messages" IsLoading="_isLoading" />
+
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <p class="chat-page__error" role="alert">@_error</p>
+    }
+
+    <ChatInput Disabled="_isLoading" OnSend="SendMessageAsync" />
+</section>
+
+@code {
+    private readonly List<ChatUiMessage> _messages = [];
+    private bool _isLoading;
+    private string? _error;
+
+    private async Task SendMessageAsync(string text)
+    {
+        _error = null;
+
+        _messages.Add(new ChatUiMessage
+        {
+            Role = "user",
+            Content = text
+        });
+
+        _isLoading = true;
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("ChatIA.Api");
+
+            var response = await client.PostAsJsonAsync(
+                "api/chat",
+                new RequestChatMessageJson { Message = text });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var problem = await response.Content.ReadFromJsonAsync<ResponseErrorJson>();
+                _error = problem?.ErrorMessages is { Count: > 0 }
+                    ? string.Join(" ", problem.ErrorMessages)
+                    : $"Erro HTTP {(int)response.StatusCode}.";
+                return;
+            }
+
+            var payload = await response.Content.ReadFromJsonAsync<ResponseChatMessageJson>();
+
+            _messages.Add(new ChatUiMessage
+            {
+                Role = "assistant",
+                Content = payload?.Reply ?? "Sem resposta."
+            });
+        }
+        catch (Exception)
+        {
+            _error = "Não foi possível falar com a Api. Verifique se a ChatIA.Api está em execução.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

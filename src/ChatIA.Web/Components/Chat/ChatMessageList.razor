@@ -1,0 +1,38 @@
+@using ChatIA.Web.Models
+
+@* Lista o histórico da conversa. *@
+<div class="chat-messages" @ref="_container">
+    @if (Messages.Count == 0)
+    {
+        <p class="chat-messages__empty">
+            Envie uma pergunta para começar. Nesta etapa a resposta é simulada.
+        </p>
+    }
+    else
+    {
+        @foreach (var message in Messages)
+        {
+            <ChatMessageBubble Message="message" />
+        }
+    }
+
+    @if (IsLoading)
+    {
+        <div class="chat-loading" aria-live="polite">
+            <span class="chat-loading__dot"></span>
+            <span class="chat-loading__dot"></span>
+            <span class="chat-loading__dot"></span>
+            <span>A IA está pensando...</span>
+        </div>
+    }
+</div>
+
+@code {
+    private ElementReference _container;
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ChatUiMessage> Messages { get; set; } = [];
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+}
