@@ -17,9 +17,19 @@ namespace ChatIA.Infrastructure
     /// </summary>
     public static class DependencyInjectionExtension
     {
-        public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        /// <param name="registerAi">
+        /// true na Api (chat + LLM). false no McpServer (só precisa de Mongo/repositórios).
+        /// </param>
+        public static void AddInfrastructure(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            bool registerAi = true)
         {
-            AddAiServices(services, configuration);
+            if (registerAi)
+            {
+                AddAiServices(services, configuration);
+            }
+
             AddMongoDb(services, configuration);
             AddRepositories(services);
         }
@@ -68,7 +78,7 @@ namespace ChatIA.Infrastructure
                 throw new InvalidOperationException(
                     "Configure ConnectionStrings:MongoDb. " +
                     "Sem auth: mongodb://localhost:27017 | Com auth: mongodb://usuario:senha@localhost:27017. " +
-                    "Prefira User Secrets: dotnet user-secrets set \"ConnectionStrings:MongoDb\" \"...\" --project src/ChatIA.Api");
+                    "Prefira User Secrets no host (Api ou McpServer).");
             }
 
             services.AddSingleton<IMongoClient>(_ => new MongoClient(connectionString));
