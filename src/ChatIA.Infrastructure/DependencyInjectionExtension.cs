@@ -1,9 +1,13 @@
 using System.ClientModel;
+using ChatIA.Domain.Repositories.Pedidos;
 using ChatIA.Domain.Services.Ai;
 using ChatIA.Infrastructure.Ai;
+using ChatIA.Infrastructure.DataAccess;
+using ChatIA.Infrastructure.DataAccess.Repositories;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 using OpenAI;
 
 namespace ChatIA.Infrastructure
@@ -16,6 +20,8 @@ namespace ChatIA.Infrastructure
         public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             AddAiServices(services, configuration);
+            AddMongoDb(services, configuration);
+            AddRepositories(services);
         }
 
         private static void AddAiServices(IServiceCollection services, IConfiguration configuration)
@@ -38,8 +44,6 @@ namespace ChatIA.Infrastructure
                     ? "gpt-4o-mini"
                     : settings.Model;
 
-                // Endpoint vazio → OpenAI oficial.
-                // Endpoint preenchido → qualquer API compatível (útil para aprendizado local).
                 OpenAIClient client = string.IsNullOrWhiteSpace(settings.Endpoint)
                     ? new OpenAIClient(settings.ApiKey)
                     : new OpenAIClient(
@@ -50,6 +54,28 @@ namespace ChatIA.Infrastructure
             });
 
             services.AddScoped<IChatAiService, ChatAiService>();
+        }
+
+        private static void AddMongoDb(IServiceCollection services, IConfiguration configuration)
+        {
+            MongoClassMaps.Register();
+
+            services.Configure<MongoSettings>(configuration.GetSection(MongoSettings.SectionName));
+
+            var connectionString = configuration.GetConnectionString("MongoDb");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Configure ConnectionStrings:MongoDb (ex.: mongodb://localhost:27017).");
+            }
+
+            services.AddSingleton<IMongoClient>(_ => new MongoClient(connectionString));
+            services.AddSingleton<MongoDbContext>();
+        }
+
+        private static void AddRepositories(IServiceCollection services)
+        {
+            services.AddScoped<IPedidoReadOnlyRepository, PedidoRepository>();
         }
     }
 }
