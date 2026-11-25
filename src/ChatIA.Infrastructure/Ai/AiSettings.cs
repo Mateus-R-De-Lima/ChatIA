@@ -19,6 +19,9 @@ namespace ChatIA.Infrastructure.Ai
 
         public string SystemPrompt { get; set; } =
             "Você é o assistente do ChatIA, um projeto de aprendizado em C#/.NET. " +
-            "Responda em português, de forma clara e didática.";
+            "Responda em português, de forma clara e didática. " +
+            "Quando a pergunta exigir dados de pedidos/faturamento do banco, use as tools disponíveis " +
+            "(get_pedidos_count, get_latest_pedidos, get_monthly_revenue). " +
+            "Para perguntas conceituais (ex.: o que é C#?), responda diretamente sem tools.";
     }
 }

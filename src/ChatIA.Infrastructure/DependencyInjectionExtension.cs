@@ -4,6 +4,7 @@ using ChatIA.Domain.Services.Ai;
 using ChatIA.Infrastructure.Ai;
 using ChatIA.Infrastructure.DataAccess;
 using ChatIA.Infrastructure.DataAccess.Repositories;
+using ChatIA.Infrastructure.Mcp;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +19,7 @@ namespace ChatIA.Infrastructure
     public static class DependencyInjectionExtension
     {
         /// <param name="registerAi">
-        /// true na Api (chat + LLM). false no McpServer (só precisa de Mongo/repositórios).
+        /// true na Api (chat + LLM + cliente MCP). false no McpServer (só Mongo/repositórios).
         /// </param>
         public static void AddInfrastructure(
             this IServiceCollection services,
@@ -37,6 +38,9 @@ namespace ChatIA.Infrastructure
         private static void AddAiServices(IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<AiSettings>(configuration.GetSection(AiSettings.SectionName));
+            services.Configure<McpSettings>(configuration.GetSection(McpSettings.SectionName));
+
+            services.AddSingleton<IMcpToolProvider, McpToolProvider>();
 
             services.AddSingleton<IChatClient>(sp =>
             {
@@ -60,7 +64,10 @@ namespace ChatIA.Infrastructure
                         new ApiKeyCredential(settings.ApiKey),
                         new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint) });
 
-                return client.GetChatClient(model).AsIChatClient();
+                // UseFunctionInvocation = loop automático de tool calling.
+                return new ChatClientBuilder(client.GetChatClient(model).AsIChatClient())
+                    .UseFunctionInvocation()
+                    .Build();
             });
 
             services.AddScoped<IChatAiService, ChatAiService>();

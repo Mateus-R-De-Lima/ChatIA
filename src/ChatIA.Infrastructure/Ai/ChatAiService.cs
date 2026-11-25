@@ -1,17 +1,20 @@
 using ChatIA.Domain.Services.Ai;
 using ChatIA.Exception.ExceptionsBase;
+using ChatIA.Infrastructure.Mcp;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ChatIA.Infrastructure.Ai
 {
     /// <summary>
-    /// Adaptador: Domain.IChatAiService → Microsoft.Extensions.AI.IChatClient.
-    /// A Application não conhece OpenAI; só este contrato.
+    /// Adaptador Domain.IChatAiService → IChatClient (+ tools MCP quando disponíveis).
     /// </summary>
     internal class ChatAiService(
         IChatClient chatClient,
-        IOptions<AiSettings> options) : IChatAiService
+        IMcpToolProvider mcpToolProvider,
+        IOptions<AiSettings> options,
+        ILogger<ChatAiService> logger) : IChatAiService
     {
         public async Task<string> GetReplyAsync(
             string userMessage,
@@ -21,9 +24,22 @@ namespace ChatIA.Infrastructure.Ai
             try
             {
                 var messages = BuildMessages(userMessage, conversationHistory);
+                var tools = await TryGetToolsAsync(cancellationToken);
 
-                // GetResponseAsync envia o contexto completo ao modelo e devolve a resposta.
-                var response = await chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
+                var chatOptions = new ChatOptions
+                {
+                    Tools = tools.Count == 0 ? null : [.. tools]
+                };
+
+                // Com UseFunctionInvocation no IChatClient, o middleware:
+                // 1) detecta tool call do modelo
+                // 2) executa a tool MCP
+                // 3) devolve o resultado ao modelo
+                // 4) retorna a resposta final em linguagem natural
+                var response = await chatClient.GetResponseAsync(
+                    messages,
+                    chatOptions,
+                    cancellationToken);
 
                 var text = response.Text?.Trim();
                 if (string.IsNullOrWhiteSpace(text))
@@ -39,9 +55,22 @@ namespace ChatIA.Infrastructure.Ai
             }
             catch (System.Exception ex)
             {
-                // Qualificamos System.Exception porque o projeto referencia o namespace ChatIA.Exception.
                 throw new ExternalServiceException(
                     $"Falha ao comunicar com o modelo de IA: {ex.Message}");
+            }
+        }
+
+        private async Task<IList<AITool>> TryGetToolsAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await mcpToolProvider.GetToolsAsync(cancellationToken);
+            }
+            catch (System.Exception ex)
+            {
+                // Chat continua sem tools (cenário A: só conhecimento do modelo).
+                logger.LogWarning(ex, "MCP indisponível; o chat seguirá sem tools.");
+                return [];
             }
         }
 
@@ -52,7 +81,6 @@ namespace ChatIA.Infrastructure.Ai
             var settings = options.Value;
             var messages = new List<ChatMessage>
             {
-                // System prompt: instruções fixas do assistente (não é histórico do usuário).
                 new(ChatRole.System, settings.SystemPrompt)
             };
 
