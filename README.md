@@ -37,16 +37,30 @@ testes/
 - MongoDB em `localhost:27017` (database `homologacao`, collection `Pedidos`)
 - Chave de API OpenAI (ou endpoint compatível)
 
-## Configuração (User Secrets)
+## Configuração (`appsettings`)
 
-```bash
-# Api
-dotnet user-secrets set "ConnectionStrings:MongoDb" "mongodb://root:root@localhost:27017/?authSource=admin" --project src/ChatIA.Api
-dotnet user-secrets set "Settings:Ai:ApiKey" "SUA_CHAVE" --project src/ChatIA.Api
+Edite `src/ChatIA.Api/appsettings.json` (ou `appsettings.Development.json`):
 
-# McpServer (também usado se rodar isolado)
-dotnet user-secrets set "ConnectionStrings:MongoDb" "mongodb://root:root@localhost:27017/?authSource=admin" --project src/ChatIA.McpServer
+```json
+"ConnectionStrings": {
+  "MongoDb": "mongodb://localhost:27017"
+},
+"Settings": {
+  "Ai": {
+    "ApiKey": "ollama",
+    "Model": "llama3.2:1b",
+    "Endpoint": "http://localhost:11434/v1"
+  }
+}
 ```
+
+| Chave | Uso |
+|-------|-----|
+| `Settings:Ai:ApiKey` | OpenAI, ou qualquer string se usar Ollama local |
+| `Settings:Ai:Endpoint` | Vazio = OpenAI oficial; ex. Ollama: `http://localhost:11434/v1` |
+| `ConnectionStrings:MongoDb` | MongoDB |
+
+Evite commitar chaves reais no Git.
 
 ## Como executar
 
@@ -66,6 +80,7 @@ Endpoints úteis de pedidos (sem IA):
 
 - `GET /api/pedidos/count`
 - `GET /api/pedidos/latest?limit=10`
+- `GET /api/pedidos/{shortReference}`
 - `GET /api/pedidos/revenue?year=2025&month=9`
 
 ## Tools MCP
@@ -73,8 +88,32 @@ Endpoints úteis de pedidos (sem IA):
 | Tool | Uso |
 |------|-----|
 | `get_pedidos_count` | Quantidade de pedidos |
-| `get_latest_pedidos` | Últimos N pedidos |
+| `get_latest_pedidos` | Lista resumida dos últimos N |
+| `get_latest_pedido_detail` | Detalhe completo do último (itens, cliente, pagamento…) |
+| `get_pedido_by_reference` | Detalhe completo pela ref. `#` |
 | `get_monthly_revenue` | Faturamento do mês/ano |
+
+Perguntas de pedidos são **roteadas no código** para o MCP (histórico resolve follow-ups como “quais são eles?” / “que marca?”).
+
+### O que o banco devolve (e o que não tem)
+
+Campos usados: `shortReference`, cliente (nome/telefone/doc), `items` (nome, qtd, preço, total, observação), `payments`, `total`, `type`, `salesChannel`, `createdAt`.
+
+**Não existe** campo separado de marca — marca/sabor costuma estar no **nome do item** ou na **observação**.
+
+### Exemplos de perguntas (delivery / PDV)
+
+| Intenção | Exemplos | Tool |
+|----------|----------|------|
+| Contagem | Quantos pedidos? Total de pedidos? | `get_pedidos_count` |
+| Lista | Últimos 5 pedidos; pedidos recentes | `get_latest_pedidos` |
+| Último completo | Qual o último pedido? Itens do último? | `get_latest_pedido_detail` |
+| Detalhe / itens | Detalhes do pedido 12; itens do #5 | `get_pedido_by_reference` |
+| Follow-up | Quais são eles? Que marca? E o cliente? | `get_pedido_by_reference` (via histórico) |
+| Cliente | Quem pediu? Telefone do pedido 8? | `get_pedido_by_reference` |
+| Pagamento | Como pagou? Foi PIX? | `get_pedido_by_reference` |
+| Tipo/canal | É delivery ou retirada? Canal Anota/iFood? | `get_pedido_by_reference` |
+| Faturamento | Faturamento de setembro/2025 | `get_monthly_revenue` |
 
 Somente leitura. Sem query arbitrária no MongoDB.
 

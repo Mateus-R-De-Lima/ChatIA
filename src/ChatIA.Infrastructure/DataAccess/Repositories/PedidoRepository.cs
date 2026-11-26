@@ -46,6 +46,23 @@ namespace ChatIA.Infrastructure.DataAccess.Repositories
             }
         }
 
+        public async Task<Pedido?> GetByShortReferenceAsync(
+            int shortReference,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await dbContext.Pedidos
+                    .Find(Builders<Pedido>.Filter.Eq(pedido => pedido.ShortReference, shortReference))
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+            catch (System.Exception ex)
+            {
+                throw new ExternalServiceException(
+                    $"Falha ao buscar pedido #{shortReference} no MongoDB: {ex.Message}");
+            }
+        }
+
         public async Task<decimal> GetRevenueByMonthAsync(
             int year,
             int month,

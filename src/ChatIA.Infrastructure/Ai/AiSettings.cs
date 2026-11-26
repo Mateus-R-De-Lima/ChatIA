@@ -2,7 +2,7 @@ namespace ChatIA.Infrastructure.Ai
 {
     /// <summary>
     /// Configurações do provedor de IA (seção Settings:Ai).
-    /// ApiKey NÃO deve ir para o repositório — use User Secrets ou variáveis de ambiente.
+    /// Prefira não versionar a ApiKey real (use appsettings.Development.json local ou User Secrets).
     /// </summary>
     public class AiSettings
     {
@@ -20,8 +20,8 @@ namespace ChatIA.Infrastructure.Ai
         public string SystemPrompt { get; set; } =
             "Você é o assistente do ChatIA, um projeto de aprendizado em C#/.NET. " +
             "Responda em português, de forma clara e didática. " +
-            "Quando a pergunta exigir dados de pedidos/faturamento do banco, use as tools disponíveis " +
-            "(get_pedidos_count, get_latest_pedidos, get_monthly_revenue). " +
-            "Para perguntas conceituais (ex.: o que é C#?), responda diretamente sem tools.";
+            "Para perguntas conceituais (ex.: o que é C#?, Clean Architecture), responda com conhecimento. " +
+            "Nunca invente dados de pedidos, números ou faturamento. " +
+            "Nunca escreva JSON nem simule function calls.";
     }
 }

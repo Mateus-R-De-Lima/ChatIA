@@ -50,8 +50,7 @@ namespace ChatIA.Infrastructure
                 if (string.IsNullOrWhiteSpace(settings.ApiKey))
                 {
                     throw new InvalidOperationException(
-                        "Configure Settings:Ai:ApiKey via User Secrets ou variável de ambiente. " +
-                        "Ex.: dotnet user-secrets set \"Settings:Ai:ApiKey\" \"sua-chave\" --project src/ChatIA.Api");
+                        "Configure Settings:Ai:ApiKey em src/ChatIA.Api/appsettings.json (ou appsettings.Development.json).");
                 }
 
                 var model = string.IsNullOrWhiteSpace(settings.Model)
@@ -64,10 +63,8 @@ namespace ChatIA.Infrastructure
                         new ApiKeyCredential(settings.ApiKey),
                         new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint) });
 
-                // UseFunctionInvocation = loop automático de tool calling.
-                return new ChatClientBuilder(client.GetChatClient(model).AsIChatClient())
-                    .UseFunctionInvocation()
-                    .Build();
+                // Tool calling de pedidos é roteado no ChatAiService → MCP (não no LLM).
+                return client.GetChatClient(model).AsIChatClient();
             });
 
             services.AddScoped<IChatAiService, ChatAiService>();

@@ -1,6 +1,8 @@
 using ChatIA.Application.UseCases.Chat.SendMessage;
+using ChatIA.Application.UseCases.Pedidos.GetByShortReference;
 using ChatIA.Application.UseCases.Pedidos.GetCount;
 using ChatIA.Application.UseCases.Pedidos.GetLatest;
+using ChatIA.Application.UseCases.Pedidos.GetLatestDetail;
 using ChatIA.Application.UseCases.Pedidos.GetMonthlyRevenue;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,6 +26,8 @@ namespace ChatIA.Application
 
             services.AddScoped<IGetPedidosCountUseCase, GetPedidosCountUseCase>();
             services.AddScoped<IGetLatestPedidosUseCase, GetLatestPedidosUseCase>();
+            services.AddScoped<IGetLatestPedidoDetailUseCase, GetLatestPedidoDetailUseCase>();
+            services.AddScoped<IGetPedidoByShortReferenceUseCase, GetPedidoByShortReferenceUseCase>();
             services.AddScoped<IGetMonthlyRevenueUseCase, GetMonthlyRevenueUseCase>();
         }
     }

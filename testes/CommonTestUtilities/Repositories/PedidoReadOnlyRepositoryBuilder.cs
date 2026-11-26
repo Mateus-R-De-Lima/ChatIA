@@ -38,6 +38,17 @@ namespace CommonTestUtilities.Repositories
             return this;
         }
 
+        public PedidoReadOnlyRepositoryBuilder WithByShortReference(Pedido? pedido)
+        {
+            _repository
+                .Setup(repository => repository.GetByShortReferenceAsync(
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(pedido);
+
+            return this;
+        }
+
         public IPedidoReadOnlyRepository Build() => _repository.Object;
     }
 }

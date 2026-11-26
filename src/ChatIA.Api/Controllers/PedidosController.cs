@@ -1,3 +1,4 @@
+using ChatIA.Application.UseCases.Pedidos.GetByShortReference;
 using ChatIA.Application.UseCases.Pedidos.GetCount;
 using ChatIA.Application.UseCases.Pedidos.GetLatest;
 using ChatIA.Application.UseCases.Pedidos.GetMonthlyRevenue;
@@ -47,6 +48,19 @@ namespace ChatIA.Api.Controllers
         {
             var response = await useCase.Execute(year, month, cancellationToken);
             return Ok(response);
+        }
+
+        [HttpGet("{shortReference:int}")]
+        [ProducesResponseType(typeof(ResponsePedidoDetailJson), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ResponseErrorJson), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ByShortReference(
+            [FromServices] IGetPedidoByShortReferenceUseCase useCase,
+            [FromRoute] int shortReference,
+            CancellationToken cancellationToken = default)
+        {
+            var response = await useCase.Execute(shortReference, cancellationToken);
+            return response is null ? NotFound() : Ok(response);
         }
     }
 }

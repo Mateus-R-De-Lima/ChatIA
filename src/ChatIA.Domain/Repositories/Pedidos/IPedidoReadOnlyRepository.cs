@@ -15,6 +15,13 @@ namespace ChatIA.Domain.Repositories.Pedidos
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Busca um pedido pela short_reference (número curto exibido ao usuário).
+        /// </summary>
+        Task<Pedido?> GetByShortReferenceAsync(
+            int shortReference,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Soma o campo total dos pedidos cujo createdAt está no mês/ano informados.
         /// </summary>
         Task<decimal> GetRevenueByMonthAsync(
